@@ -21,4 +21,4 @@ Programming includes configuration of microcontroller that we are using in our p
 <br>
 <br>
 <br>
-Author-Lakshit Katyal(IIT Jodhpur)
+Author-IIT Jodhpur

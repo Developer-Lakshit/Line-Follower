@@ -67,11 +67,15 @@ const int PWMB = 5;   // PWM for right motor speed
 const int BIN1 = 6;   // Right motor direction control 1
 const int BIN2 = 7;   // Right motor direction control 2
 
+// LED for White Box Detection
+const int LED_PIN = 13;  // Built-in LED on Arduino Nano
+
 // QTR-8RC Reflectance Sensor Array
 QTRSensors qtr;
 const uint8_t SensorCount = 8;
 uint16_t sensorValues[SensorCount];
 const uint16_t CENTER_POSITION = 3500;  // Center value of QTR reading (0-7000)
+const uint16_t WHITE_BOX_THRESHOLD = 6500;  // Threshold to detect white surface
 
 void setup() {
   // Initialize Serial Communication for debugging
@@ -84,6 +88,10 @@ void setup() {
   pinMode(PWMB, OUTPUT);
   pinMode(BIN1, OUTPUT);
   pinMode(BIN2, OUTPUT);
+  
+  // Initialize LED pin
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
 
   // 2. QTR-8RC Sensor Setup
   // Configure sensor type as RC (resistor-capacitor)
@@ -143,6 +151,39 @@ void loop() {
 
   // 5. Apply Motor Speeds via TB6612FNG Driver
   setMotorSpeeds(leftMotorSpeed, rightMotorSpeed);
+  
+  // 6. Detect White Box and Turn On LED
+  if (isWhiteBoxDetected(sensorValues)) {
+    digitalWrite(LED_PIN, HIGH);  // Turn LED on when white box detected
+  }
+}
+
+/*
+ * White Box Detection Function
+ * 
+ * Detects if the robot has reached a white box by checking if all sensors
+ * read high values (indicating a bright/white surface)
+ */
+bool isWhiteBoxDetected(uint16_t* sensors) {
+  uint8_t whiteCount = 0;
+  // Count how many sensors detect white (high values)
+  for (uint8_t i = 0; i < SensorCount; i++) {
+    if (sensors[i] > WHITE_BOX_THRESHOLD) {
+      whiteCount++;
+    }
+  }
+  // If at least 6 out of 8 sensors detect white, it's the white box
+  return (whiteCount >= 6);
+}
+
+/*
+ * LED On Function
+ * 
+ * Turns the LED on to indicate white box detection
+ * The LED will stay on once the white box is detected
+ */
+void turnOnLED() {
+  digitalWrite(LED_PIN, HIGH);
 }
 
 /*
